@@ -49,7 +49,7 @@ docker-compose up --build
 
 ## Swagger UI
 
-- Доступно після запуску: [http://localhost:8000/docs](http://localhost:8000/docs)
+- Доступно після запуску: [http://localhost:8002/docs](http://localhost:8002/docs)
 
 ## Автор
 
