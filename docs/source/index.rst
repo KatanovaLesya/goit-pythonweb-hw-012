@@ -6,9 +6,9 @@
 GoIT Contacts API (HW12) documentation
 ======================================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+This project is a RESTful API for managing personal contacts. It includes features such as authentication, authorization, contact CRUD operations, birthday reminders, and integration with external services like Cloudinary and email.
+
+Use this documentation to explore the available modules, endpoints, and services used in the project.
 
 
 .. toctree::

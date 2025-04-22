@@ -34,39 +34,72 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Сервіс авторизації та автентифікації користувачів.</span>
 
-<span class="sd">Цей модуль містить функції для хешування паролів,</span>
-<span class="sd">створення та перевірки JWT токенів, керування аватарами.</span>
+<span class="sd">Містить функції для хешування паролів,</span>
+<span class="sd">створення та перевірки JWT токенів.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">passlib.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">CryptContext</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">passlib.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">CryptContext</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jwt</span>
 
+<span class="c1"># Зазвичай ключ і алгоритм зберігають у .env</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s2">&quot;super_mega_secret_key_123&quot;</span>
+<span class="n">ALGORITHM</span> <span class="o">=</span> <span class="s2">&quot;HS256&quot;</span>
 
-<span class="c1"># ...</span>
-
-<div class="viewcode-block" id="create_access_token">
-<a class="viewcode-back" href="../../auth.html#auth.service.create_access_token">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_access_token</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">expires_delta</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Створює JWT access token.</span>
-
-<span class="sd">    :param data: Дані для включення в токен</span>
-<span class="sd">    :param expires_delta: Тривалість дії токена</span>
-<span class="sd">    :return: Підписаний access token</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
+<span class="n">pwd_context</span> <span class="o">=</span> <span class="n">CryptContext</span><span class="p">(</span><span class="n">schemes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bcrypt&quot;</span><span class="p">],</span> <span class="n">deprecated</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="verify_password">
 <a class="viewcode-back" href="../../auth.html#auth.service.verify_password">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">verify_password</span><span class="p">(</span><span class="n">plain_password</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hashed_password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Перевіряє відповідність паролю та його хешу.</span>
+<span class="sd">    Перевіряє відповідність звичайного пароля та його хешу.</span>
 
-<span class="sd">    :param plain_password: Введений пароль</span>
-<span class="sd">    :param hashed_password: Хеш паролю з бази</span>
-<span class="sd">    :return: True якщо збігається, False інакше</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
+<span class="sd">    Args:</span>
+<span class="sd">        plain_password (str): Введений користувачем пароль.</span>
+<span class="sd">        hashed_password (str): Хеш пароля з бази.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True якщо збігається, False інакше.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pwd_context</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">plain_password</span><span class="p">,</span> <span class="n">hashed_password</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_password_hash">
+<a class="viewcode-back" href="../../auth.html#auth.service.get_password_hash">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_password_hash</span><span class="p">(</span><span class="n">password</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Хешує пароль для збереження у базі.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        password (str): Пароль у відкритому вигляді.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Хешований пароль.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pwd_context</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="n">password</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_access_token">
+<a class="viewcode-back" href="../../auth.html#auth.service.create_access_token">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_access_token</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">expires_delta</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">timedelta</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Створює JWT access token з переданими даними.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (dict): Дані, які будуть закодовані в токен.</span>
+<span class="sd">        expires_delta (timedelta | None): Тривалість дії токена.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Підписаний access token.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">to_encode</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">expire</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">+</span> <span class="p">(</span><span class="n">expires_delta</span> <span class="ow">or</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">15</span><span class="p">))</span>
+    <span class="n">to_encode</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;exp&quot;</span><span class="p">:</span> <span class="n">expire</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">jwt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">to_encode</span><span class="p">,</span> <span class="n">SECRET_KEY</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">ALGORITHM</span><span class="p">)</span></div>
 
 </pre></div>
 

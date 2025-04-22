@@ -45,21 +45,41 @@
 <section id="module-auth.service">
 <span id="auth-service-module"></span><h2>auth.service module<a class="headerlink" href="#module-auth.service" title="Link to this heading">¶</a></h2>
 <p>Сервіс авторизації та автентифікації користувачів.</p>
-<p>Цей модуль містить функції для хешування паролів,
-створення та перевірки JWT токенів, керування аватарами.</p>
+<p>Містить функції для хешування паролів,
+створення та перевірки JWT токенів.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="auth.service.create_access_token">
 <span class="sig-prename descclassname"><span class="pre">auth.service.</span></span><span class="sig-name descname"><span class="pre">create_access_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expires_delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">timedelta</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/auth/service.html#create_access_token"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auth.service.create_access_token" title="Link to this definition">¶</a></dt>
-<dd><p>Створює JWT access token.</p>
+<dd><p>Створює JWT access token з переданими даними.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Параметри<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> – Дані для включення в токен</p></li>
-<li><p><strong>expires_delta</strong> – Тривалість дії токена</p></li>
+<li><p><strong>data</strong> (<em>dict</em>) – Дані, які будуть закодовані в токен.</p></li>
+<li><p><strong>expires_delta</strong> (<em>timedelta</em><em> | </em><em>None</em>) – Тривалість дії токена.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Повертає<span class="colon">:</span></dt>
-<dd class="field-even"><p>Підписаний access token</p>
+<dd class="field-even"><p>Підписаний access token.</p>
+</dd>
+<dt class="field-odd">Тип повернення<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="auth.service.get_password_hash">
+<span class="sig-prename descclassname"><span class="pre">auth.service.</span></span><span class="sig-name descname"><span class="pre">get_password_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/auth/service.html#get_password_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auth.service.get_password_hash" title="Link to this definition">¶</a></dt>
+<dd><p>Хешує пароль для збереження у базі.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Параметри<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>password</strong> (<em>str</em>) – Пароль у відкритому вигляді.</p>
+</dd>
+<dt class="field-even">Повертає<span class="colon">:</span></dt>
+<dd class="field-even"><p>Хешований пароль.</p>
+</dd>
+<dt class="field-odd">Тип повернення<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -67,16 +87,19 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="auth.service.verify_password">
 <span class="sig-prename descclassname"><span class="pre">auth.service.</span></span><span class="sig-name descname"><span class="pre">verify_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plain_password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hashed_password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/auth/service.html#verify_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#auth.service.verify_password" title="Link to this definition">¶</a></dt>
-<dd><p>Перевіряє відповідність паролю та його хешу.</p>
+<dd><p>Перевіряє відповідність звичайного пароля та його хешу.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Параметри<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>plain_password</strong> – Введений пароль</p></li>
-<li><p><strong>hashed_password</strong> – Хеш паролю з бази</p></li>
+<li><p><strong>plain_password</strong> (<em>str</em>) – Введений користувачем пароль.</p></li>
+<li><p><strong>hashed_password</strong> (<em>str</em>) – Хеш пароля з бази.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Повертає<span class="colon">:</span></dt>
-<dd class="field-even"><p>True якщо збігається, False інакше</p>
+<dd class="field-even"><p>True якщо збігається, False інакше.</p>
+</dd>
+<dt class="field-odd">Тип повернення<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
