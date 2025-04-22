@@ -1,3 +1,9 @@
+"""
+Точка входу до REST API застосунку GoIT Contacts.
+
+Запускає FastAPI сервер із підключеними роутами.
+"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
@@ -39,7 +45,8 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(auth_router, prefix="/auth")
-app.include_router(contacts_router, prefix="/contacts")
+app.include_router(contacts_router)
+
 
 
 
