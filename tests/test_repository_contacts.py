@@ -1,3 +1,4 @@
+import uuid
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -150,3 +151,4 @@ def test_get_upcoming_birthdays(db):
     results = get_upcoming_birthdays(db, user_id=1)
     assert len(results) == 1
     assert results[0].first_name == "Birthday"
+

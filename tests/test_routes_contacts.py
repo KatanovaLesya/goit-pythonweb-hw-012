@@ -1,3 +1,4 @@
+import uuid
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -34,7 +35,7 @@ def test_create_contact():
     data = {
         "first_name": "Test",
         "last_name": "User",
-        "email": "test_create_001@example.com",
+        "email": f"test_{uuid.uuid4().hex}@example.com", # test_create_001@example.com",
         "phone": "1234567890",
         "birthday": "2000-01-01"
     }
@@ -57,7 +58,7 @@ def test_update_contact():
     data = {
         "first_name": "Old",
         "last_name": "Name",
-        "email": "update_test@example.com",
+        "email": f"test_{uuid.uuid4().hex}@example.com", # update_test@example.com",
         "phone": "0000000000",
         "birthday": "1990-01-01"
     }
@@ -76,7 +77,7 @@ def test_delete_contact():
     data = {
         "first_name": "Delete",
         "last_name": "Me",
-        "email": "delete_me@example.com",
+        "email": f"test_{uuid.uuid4().hex}@example.com", # delete_me@example.com",
         "phone": "1111111111",
         "birthday": "1999-01-01"
     }
@@ -94,7 +95,7 @@ def test_search_contacts():
     client.post("/contacts/", json={
         "first_name": "Olena",
         "last_name": "Test",
-        "email": "olena_search@example.com",
+        "email": f"test_{uuid.uuid4().hex}@example.com", # olena_search@example.com",
         "phone": "1231231234",
         "birthday": "1995-05-05"
     })
@@ -108,10 +109,11 @@ def test_get_birthdays():
     client.post("/contacts/", json={
         "first_name": "Birthday",
         "last_name": "Soon",
-        "email": "birthday_today@example.com",
+        "email": f"test_{uuid.uuid4().hex}@example.com", # birthday_today@example.com",
         "phone": "8888888888",
         "birthday": today
     })
     response = client.get("/contacts/birthdays/")
     assert response.status_code == 200
     assert any(c["first_name"] == "Birthday" for c in response.json())
+
