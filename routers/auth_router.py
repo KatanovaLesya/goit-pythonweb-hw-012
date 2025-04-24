@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from database import SessionLocal
 from models import User
-from schemas import UserCreate, UserOut
+from schemas import UserCreate, UserOut, UserBase
 from auth_service import get_password_hash, verify_password, create_access_token
 
 from auth_service import get_current_user
@@ -23,6 +23,7 @@ from fastapi import UploadFile, File
 from services.cloudinary_service import upload_avatar
 import os
 from services.redis_service import cache_user
+from pydantic import BaseModel
 
 
 
@@ -146,3 +147,43 @@ def upload_avatar_route(
 @limiter.limit("5/minute")
 def read_users_me(request: Request, current_user: UserOut = Depends(get_current_user)):
     return current_user
+
+@router.post("/request-password-reset")
+def request_password_reset(user: UserBase, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    token = create_verification_token(db_user.email)
+    reset_link = f"http://localhost:8000/auth/reset-password?token={token}"
+
+    send_email(
+        to_email=db_user.email,
+        subject="🔐 Скидання пароля",
+        body=f"Перейдіть за посиланням, щоб скинути пароль: {reset_link}"
+    )
+
+    return {"message": "Password reset link sent to your email."}
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+@router.post("/reset-password")
+def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(data.token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=400, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Invalid token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.password = get_password_hash(data.new_password)
+    db.commit()
+
+    return {"message": "Password reset successful!"}
