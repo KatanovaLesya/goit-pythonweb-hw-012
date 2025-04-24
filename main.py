@@ -19,6 +19,9 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from rate_limiter import limiter
+import redis.asyncio as redis
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
 
 class OAuth2PasswordBearerWithCookie(OAuth2):
     def __init__(self, tokenUrl: str):
@@ -41,7 +44,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.state.limiter = limiter
+@app.on_event("startup")
+async def startup():
+    redis_connection = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+    await FastAPILimiter.init(redis_connection)
+    app.state.limiter = limiter
+
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(auth_router, prefix="/auth")
