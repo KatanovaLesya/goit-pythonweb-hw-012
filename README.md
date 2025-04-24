@@ -1,56 +1,95 @@
-# Опис проєкту
+# 📱 Contacts API — Final Project (GoIT Python Web)
 
-## Contacts API (FastAPI + PostgreSQL + Docker)
+This is the final project for the GoIT FullStack Web Development with Python course. It demonstrates implementation of a production-ready REST API with authentication, authorization, caching, testing, and more.
 
-REST API для зберігання, пошуку та управління контактами. Реалізовано аутентифікацію, авторизацію, підтвердження email, аватар користувача та Docker-контейнеризацію.
+---
 
-## Стек технологій
+## 🚀 Features
 
-- Python 3.12
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- Alembic
-- JWT (JSON Web Tokens)
-- Cloudinary (аватарки)
-- Mailtrap (лист підтвердження)
-- Docker, Docker Compose
+- **JWT Authentication** with `access_token`
+- **Password Reset** via email with token
+- **Role-based Access Control** (user/admin)
+- **Admin-only avatar upload** (via Cloudinary)
+- **Contacts management**
+- **Rate limiting** with `slowapi`
+- **Caching** current user with Redis
+- **Email delivery** with SMTP
+- **Test coverage ≥ 75%** with `pytest` and `pytest-cov`
+- **Environment variables** in `.env`
 
-## Швидкий запуск (Docker)
+---
 
-docker-compose up --build
+## 📂 Project Structure
 
-## Основні фічі
-
-- Реєстрація користувача з перевіркою пошти
-- Авторизація через JWT токени
-- Верифікація email
-- CRUD операції з контактами
-- Пошук контактів (ім'я, прізвище, email)
-- Найближчі дні народження
-- Обмеження запитів `/me` (rate limit 5/minute)
-- Оновлення аватара (Cloudinary)
-- CORS enabled
-- Dockerized
-
-## Структура проекту
-
+```
+.
+├── auth_service.py
+├── database.py
 ├── main.py
 ├── models.py
-├── routers/
-├── services/
+├── rate_limiter.py
 ├── repository/
-├── database.py
-├── auth_service.py
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
+│   └── contacts.py
+├── routers/
+│   ├── auth_router.py
+│   └── contacts.py
+├── schemas.py
+├── services/
+│   ├── cloudinary_service.py
+│   ├── email_service.py
+│   └── redis_service.py
+├── tests/
+│   ├── test_auth_router.py
+│   ├── test_auth_service.py
+│   ├── test_repository_contacts.py
+│   ├── test_routes_contacts.py
+│   └── ...
+```
 
-## Swagger UI
+---
 
-- Доступно після запуску: [http://localhost:8002/docs](http://localhost:8002/docs)
+## ✅ How to Run
 
-## Автор
+1. Setup PostgreSQL & Redis locally.
+2. Create `.env` file:
+```env
+MAIL_USERNAME=your@mail.com
+MAIL_PASSWORD=yourpassword
+MAIL_FROM=your@mail.com
+MAIL_PORT=587
+MAIL_SERVER=smtp.yourserver.com
+SECRET_KEY=your_secret_key
+ALGORITHM=HS256
+```
+3. Run:
+```bash
+uvicorn main:app --reload
+```
 
-Lesya Katanova
+---
+
+## 🧪 Run Tests
+
+```bash
+pytest --cov=./ --cov-report=term-missing
+```
+
+---
+
+## 💻 Technologies Used
+
+- FastAPI
+- SQLAlchemy
+- PostgreSQL
+- Redis
+- Cloudinary
+- Pytest
+- Sphinx
+- Passlib (bcrypt)
+- JWT (jose)
+
+---
+
+## 🏁 Author
+
+Lesya Katanova — Final project for GoIT Python Web course
