@@ -27,5 +27,6 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     avatar_url = Column(String, nullable=True)
+    role = Column(String, default="user") 
 
     contacts = relationship("Contact", back_populates="owner")

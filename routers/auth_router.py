@@ -21,7 +21,7 @@ from rate_limiter import limiter
 from fastapi import UploadFile, File
 from services.cloudinary_service import upload_avatar
 import os
-
+from services.redis_service import cache_user
 
 router = APIRouter(tags=["auth"])
 
@@ -67,7 +67,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-
     if not user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -75,6 +74,15 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         )
 
     access_token = create_access_token(data={"sub": user.email})
+    
+    # Кешуємо користувача після логіну
+    cache_user(access_token, {
+    "id": user.id,
+    "email": user.email,
+    "role": user.role
+})
+
+
     return {"access_token": access_token, "token_type": "bearer"}
 
 
