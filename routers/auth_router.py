@@ -63,33 +63,38 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    print(f"🔐 Login attempt for: {form_data.username}")
+    
     user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.password):
+    if not user:
+        print("⛔ Email not found")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not verify_password(form_data.password, user.password):
+        print("⛔ Incorrect password")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     if not user.is_verified:
+        print("⚠️ Email not verified")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Email not verified"
         )
 
     access_token = create_access_token(data={"sub": user.email})
-    
-    # Кешуємо користувача після логіну
+
+    # Кешуємо користувача
     cache_user(access_token, {
-    "id": user.id,
-    "email": user.email,
-    "role": user.role
-})
+        "id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "is_active": user.is_active,
+        "is_verified": user.is_verified,
+        "role": user.role
+    })
 
-
+    print("✅ Token created and user cached")
     return {"access_token": access_token, "token_type": "bearer"}
-
-
-@router.get("/me", response_model=UserOut)
-@limiter.limit("5/minute")
-def read_users_me(request: Request, current_user: User = Depends(get_current_user)):
-    return current_user
 
 
 @router.get("/verify-email")
@@ -132,3 +137,8 @@ def upload_avatar_route(
     db.commit()
 
     return {"avatar_url": avatar_url}
+
+@router.get("/me", response_model=UserOut)
+@limiter.limit("5/minute")
+def read_users_me(request: Request, current_user: UserOut = Depends(get_current_user)):
+    return current_user
