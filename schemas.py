@@ -42,6 +42,7 @@ class UserOut(UserBase):
     is_active: bool
     is_verified: bool
     avatar_url: Optional[str] = None
+    role: str = "user"
 
     class Config:
         orm_mode = True

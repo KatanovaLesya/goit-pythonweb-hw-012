@@ -16,12 +16,16 @@ from jose import JWTError, jwt
 from fastapi import Query
 from fastapi import Request
 from auth_service import SECRET_KEY, ALGORITHM
+from dependencies.roles import admin_required  
 
 from rate_limiter import limiter
 from fastapi import UploadFile, File
 from services.cloudinary_service import upload_avatar
 import os
 from services.redis_service import cache_user
+
+
+
 
 router = APIRouter(tags=["auth"])
 
@@ -118,7 +122,7 @@ def verify_email(token: str = Query(...), db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Email successfully verified!"}
 
-@router.post("/avatar")
+@router.put("/avatar", dependencies=[Depends(admin_required)])
 def upload_avatar_route(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),

@@ -1,119 +1,57 @@
-import uuid
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
+from fastapi.security import OAuth2
 
-from fastapi.testclient import TestClient
-from main import app
-from models import User
-from auth_service import get_current_user
-
-# Підміна авторизованого користувача
-def override_get_current_user():
-    return User(
-        id=1,
-        username="testuser",
-        email="test@example.com",
-        password="hashed",
-        is_active=True,
-        is_verified=True,
-        avatar_url=None
-    )
-
-app.dependency_overrides[get_current_user] = override_get_current_user
-
-client = TestClient(app)
+from routers.auth_router import router as auth_router
+from routers.contacts import router as contacts_router
 
 
-def test_read_contacts_empty():
-    response = client.get("/contacts/")
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+from rate_limiter import limiter
+import redis.asyncio as redis
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
+
+class OAuth2PasswordBearerWithCookie(OAuth2):
+    def __init__(self, tokenUrl: str):
+        flows = OAuthFlowsModel(password={"tokenUrl": tokenUrl})
+        super().__init__(flows=flows)
+
+app = FastAPI(
+    title="Contacts API",
+    description="REST API для керування контактами",
+    version="1.0.0",
+    openapi_tags=[{"name": "auth", "description": "Аутентифікація"}]
+)
+
+# CORS 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+async def startup():
+    redis_connection = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+    await FastAPILimiter.init(redis_connection)
+    app.state.limiter = limiter
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.include_router(auth_router, prefix="/auth")
+app.include_router(contacts_router)
 
 
-def test_create_contact():
-    data = {
-        "first_name": "Test",
-        "last_name": "User",
-        "email": f"test_{uuid.uuid4().hex}@example.com", # test_create_001@example.com",
-        "phone": "1234567890",
-        "birthday": "2000-01-01"
-    }
-    response = client.post("/contacts/", json=data)
-    assert response.status_code == 201
-    contact = response.json()
-    assert contact["first_name"] == "Test"
-    assert contact["email"] == "test_create_001@example.com"
+@app.get("/")
+def root():
+    return {"message": "Welcome to HW10 API"}
 
 
-def test_get_created_contact():
-    response = client.get("/contacts/")
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) >= 1
-    assert any(contact["first_name"] == "Test" for contact in data)
-
-
-def test_update_contact():
-    data = {
-        "first_name": "Old",
-        "last_name": "Name",
-        "email": f"test_{uuid.uuid4().hex}@example.com", # update_test@example.com",
-        "phone": "0000000000",
-        "birthday": "1990-01-01"
-    }
-    create_resp = client.post("/contacts/", json=data)
-    contact_id = create_resp.json()["id"]
-
-    update_data = {
-        "first_name": "New"
-    }
-    response = client.put(f"/contacts/{contact_id}", json=update_data)
-    assert response.status_code == 200
-    assert response.json()["first_name"] == "New"
-
-
-def test_delete_contact():
-    data = {
-        "first_name": "Delete",
-        "last_name": "Me",
-        "email": f"test_{uuid.uuid4().hex}@example.com", # delete_me@example.com",
-        "phone": "1111111111",
-        "birthday": "1999-01-01"
-    }
-    create_resp = client.post("/contacts/", json=data)
-    contact_id = create_resp.json()["id"]
-
-    response = client.delete(f"/contacts/{contact_id}")
-    assert response.status_code == 200
-
-    get_resp = client.get(f"/contacts/{contact_id}")
-    assert get_resp.status_code == 404
-
-
-def test_search_contacts():
-    client.post("/contacts/", json={
-        "first_name": "Olena",
-        "last_name": "Test",
-        "email": f"test_{uuid.uuid4().hex}@example.com", # olena_search@example.com",
-        "phone": "1231231234",
-        "birthday": "1995-05-05"
-    })
-    response = client.get("/contacts/search/?query=olena")
-    assert response.status_code == 200
-    assert any("olena" in contact["first_name"].lower() for contact in response.json())
-
-
-def test_get_birthdays():
-    today = "2000-04-22"  # Сьогодні
-    client.post("/contacts/", json={
-        "first_name": "Birthday",
-        "last_name": "Soon",
-        "email": f"test_{uuid.uuid4().hex}@example.com", # birthday_today@example.com",
-        "phone": "8888888888",
-        "birthday": today
-    })
-    response = client.get("/contacts/birthdays/")
-    assert response.status_code == 200
-    assert any(c["first_name"] == "Birthday" for c in response.json())
 

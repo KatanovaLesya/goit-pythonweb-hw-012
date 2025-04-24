@@ -30,3 +30,5 @@ class User(Base):
     role = Column(String, default="user") 
 
     contacts = relationship("Contact", back_populates="owner")
+
+   
